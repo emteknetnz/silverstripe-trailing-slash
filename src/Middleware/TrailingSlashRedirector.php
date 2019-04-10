@@ -28,16 +28,21 @@ class TrailingSlashRedirector implements HTTPMiddleware
     /**
      * Set to true for /category/my-page/
      * Set to false for /category/my-page
+     * 
      * @var bool
      */
     private static $use_trailing_slash_urls = true;
 
     /**
      * The http status code used for the redirect
-     * You may wish to set this to 302 during an initial deployment to ensure things still work as you expect them to
+     * You may wish to set this to 302 during an initial deployment to ensure things still work as you expect them to and later change to 301
+     * Google is is apparently fairly loose with duplicate content on 'with slash' and 'without slash' so there's probably very little SEO penalty for having both
+     * meaning that there's probably little reason to use a 301, since SEO is the main benefit of using a 301
+     * Note: once this is set to 301, it's basically impossible to change it to the other version because 301 get cached in browsers and proxies
+     * 
      * @var int
      */
-    private static $status_code = 301;
+    private static $status_code = 302;
 
     public function process(HTTPRequest $request, callable $delegate)
     {
