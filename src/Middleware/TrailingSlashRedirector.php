@@ -25,6 +25,20 @@ class TrailingSlashRedirector implements HTTPMiddleware
         'dev/',
     ];
 
+    /**
+     * Set to true for /category/my-page/
+     * Set to false for /category/my-page
+     * @var bool
+     */
+    private static $use_trailing_slash_urls = true;
+
+    /**
+     * The http status code used for the redirect
+     * You may wish to set this to 302 during an initial deployment to ensure things still work as you expect them to
+     * @var int
+     */
+    private static $status_code = 301;
+
     public function process(HTTPRequest $request, callable $delegate)
     {
         $ignore_paths = [];
@@ -44,20 +58,29 @@ class TrailingSlashRedirector implements HTTPMiddleware
             }
 
             $requested_url = $_SERVER['REQUEST_URI'];
-            $expected_url = rtrim(Director::baseURL() . $request->getURL(), '/') . '/';
             $urlPathInfo = pathinfo($requested_url);
             $params = $request->getVars();
+
+            $use_trailing_slash_urls = Config::inst()->get(TrailingSlashRedirector::class, 'use_trailing_slash_urls');
+            if ($use_trailing_slash_urls) {
+                $expected_url = rtrim(Director::baseURL() . $request->getURL(), '/') . '/';
+                $do_redirect = !preg_match('/^' . preg_quote($expected_url, '/') . '(?!\/)/i', $requested_url);
+                $redirect_url = Controller::join_links($expected_url, '/');
+            } else {
+                $expected_url = rtrim(Director::baseURL() . $request->getURL(), '/');
+                $do_redirect = preg_match('/^' . preg_quote($expected_url, '/') . '\/$/i', $requested_url);
+                $redirect_url = $expected_url;
+            }
 
             if (!Director::is_ajax() &&
                 !isset($urlPathInfo['extension']) &&
                 empty($params) &&
-                !preg_match('/^' . preg_quote($expected_url, '/') . '(?!\/)/i', $requested_url)
+                $do_redirect
             ) {
-                $params = $request->getVars();
-                $redirect_url = Controller::join_links($expected_url, '/');
                 $response = new HTTPResponse();
 
-                return $response->redirect($redirect_url, 301);
+                $status_code = Config::inst()->get(TrailingSlashRedirector::class, 'status_code');
+                return $response->redirect($redirect_url, $status_code);
             }
         }
 
