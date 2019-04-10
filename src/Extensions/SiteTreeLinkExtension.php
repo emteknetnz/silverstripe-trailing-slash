@@ -9,7 +9,7 @@ use SilverStripe\ORM\DataExtension;
 class SiteTreeLinkExtension extends DataExtension
 {
     
-    public function updateLink(&$link)
+    public function updateLink(&$link, $action, $relativeLink)
     {
         $use_trailing_slash_urls = Config::inst()->get(TrailingSlashRedirector::class, 'use_trailing_slash_urls');
         if ($use_trailing_slash_urls) {
