@@ -2,6 +2,8 @@
 
 namespace Axllent\TrailingSlash\Extensions;
 
+use Axllent\TrailingSlash\Middleware\TrailingSlashRedirector;
+use SilverStripe\Core\Config\Config;
 use SilverStripe\ORM\DataExtension;
 
 class SiteTreeLinkExtension extends DataExtension
